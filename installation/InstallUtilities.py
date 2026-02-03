@@ -3,7 +3,7 @@
 # . Note that distutils is deprecated so this will have to be replaced by setuptools!
 # . In any case, paths need to be sorted out!
 
-import functools, glob, imp, os, os.path, shutil, sys, sysconfig
+import functools, glob, importlib, os, os.path, shutil, sys, sysconfig
 
 from distutils.core import setup, Extension
 #from distutils.util import get_platform
@@ -33,8 +33,8 @@ _CExtension            = ".c"
 _LibraryExtension      = ".a"
 _PyrexExtension        = ".pyx"
 _SharedObjectExtension = ".so"
-_SharedObjectBuildPathExtension = ( "." + imp.get_tag ( ) + "*" + _SharedObjectExtension )
-#_SharedObjectBuildPathExtension = ( "." + imp.get_tag ( ) + "m*" + _SharedObjectExtension )
+_SharedObjectBuildPathExtension = ( "." + importlib.get_tag ( ) + "*" + _SharedObjectExtension )
+#_SharedObjectBuildPathExtension = ( "." + importlib.get_tag ( ) + "m*" + _SharedObjectExtension )
 
 # . File names.
 _DependencyFile        = "__dependencies__"
