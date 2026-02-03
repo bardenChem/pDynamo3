@@ -1,0 +1,31 @@
+---
+Long Scripts:
+  - QCMMEnergies
+Scripts:
+  - CrystalMMEnergies
+  - CrystalQCEnergies
+  - CrystalQCMMEnergies
+  - DFTRKSEnergies
+  - DFTUKSEnergies
+  - DihydrogenDissociation
+  - GaussianBasisCartesianSphericalTransformation
+  - GaussianBasisSets
+  - GridUpdating
+  - MergePrune
+  - MNDOCIEnergies
+  - MNDOCIEnergiesQCMM
+  - MNDOParameterBasisSets
+  - MNDORHFEnergies
+  - MNDOUHFEnergies
+  - NBModelCutOffCentering
+  - ONIOMEnergies
+  - OPLSProteinParameters
+  - ORCAEnergies
+  - PickleMM
+  - PickleQCMM
+  - QCMMEnergies
+  - QCMMWaterDimerBinding
+  - RadiiOfGyration
+  - SQLAtomSelection
+  - SurfaceCrossing
+...

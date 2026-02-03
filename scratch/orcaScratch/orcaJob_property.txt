@@ -1,0 +1,87 @@
+-------------------------------------------------------------
+----------------------- !PROPERTIES! ------------------------
+-------------------------------------------------------------
+# -----------------------------------------------------------
+$ PAL_Flags
+   description: The PAL Flags
+   geom. index: 1
+   prop. index: 1
+        Diskflag:     2
+# -----------------------------------------------------------
+$ SCF_Energy
+   description: The SCF energy
+   geom. index: 1
+   prop. index: 1
+        SCF Energy:      -76.3846130237
+# -----------------------------------------------------------
+$ DFT_Energy
+   description: The DFT energy
+   geom. index: 1
+   prop. index: 1
+   Number of Alpha Electrons                  4.9999987527 
+   Number of Beta  Electrons                  4.9999987527 
+   Total number of  Electrons                 9.9999975055 
+   Exchange energy                           -7.1278501240 
+   Correlation energy                        -0.4022175702 
+   Correlation energy NL                      0.0000000000 
+   Exchange-Correlation energy               -7.5300676942 
+   Embedding correction                       0.0000000000 
+   Total DFT Energy (No VdW correction)     -76.3846130237 
+# -----------------------------------------------------------
+$ Mayer_Pop
+   description: The Mayer population analysis
+   geom. index: 1
+   prop. index: 1
+     Number of atoms                     : 3
+     Threshold for printing              : 0.1000000
+     Number of bond orders printed       : 2
+  NA   - Mulliken gross atomic population
+  ZA   - Total nuclear charge
+  QA   - Mulliken gross atomic charge
+  VA   - Mayer's total valence
+  BVA  - Mayer's bonded valence
+  FA   - Mayer's free valence
+  ATOM       NA         ZA         QA         VA         BVA        FA
+  0   0     8.8439     8.0000    -0.8439     1.5803     1.5803    -0.0000
+  1   0     0.6124     1.0000     0.3876     0.8087     0.8087     0.0000
+  2   0     0.5437     1.0000     0.4563     0.7607     0.7607     0.0000
+      Bond orders larger than 0.1000000
+           Atom A     A.N. of A          Atom B    A.N. of B              Bond order
+                0             8               1            1                0.814126
+                0             8               2            1                0.766125
+# -----------------------------------------------------------
+$ SCF_Electric_Properties
+   description: The SCF Calculated Electric Properties
+   geom. index: 1
+   prop. index: 1
+       Filename                          : /home/igorchem/programs/pDynamo3/scratch/orcaScratch/orcaJob.scfp 
+       Do Dipole Moment Calculation      : true 
+       Do Quadrupole Moment Calculation  : false 
+       Do Polarizability Calculation     : false 
+** Dipole moment part of electric properties **
+        Magnitude of dipole moment (Debye) :        2.2700273373
+        Electronic Contribution:
+                  0    
+      0       0.004266
+      1       0.000000
+      2       0.137257
+        Nuclear Contribution:
+                  0    
+      0      -0.650157
+      1       0.000000
+      2      -0.754036
+        Total Dipole moment:
+                  0    
+      0      -0.645891
+      1       0.000000
+      2      -0.616778
+# -------------------------------------------------------------
+----------------------- !GEOMETRIES! ------------------------
+# -------------------------------------------------------------
+------------------------ !GEOMETRY! -------------------------
+    Number of atoms:    3 
+    Geometry Index:     1 
+    Coordinates:
+               0 O      1.418999999982    0.000000000000    0.059700000003
+               1 H      1.611900000017    0.000000000000   -0.876300000024
+               2 H      0.445000000003    0.000000000000    0.089799999986
