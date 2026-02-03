@@ -33,7 +33,7 @@ _CExtension            = ".c"
 _LibraryExtension      = ".a"
 _PyrexExtension        = ".pyx"
 _SharedObjectExtension = ".so"
-_SharedObjectBuildPathExtension = ( "." + importlib.get_tag ( ) + "*" + _SharedObjectExtension )
+_SharedObjectBuildPathExtension = ( "." +  sys.implementation.cache_tag + "*" + _SharedObjectExtension )
 #_SharedObjectBuildPathExtension = ( "." + importlib.get_tag ( ) + "m*" + _SharedObjectExtension )
 
 # . File names.
