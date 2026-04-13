@@ -121,30 +121,84 @@ class QCModelPySCF ( QCModel ):
         except:
             raise QCModelError ( "Error creating PySCF mole and mean-field objects." )
 
-        # . Calculate energy.
-        try:     
+        use_gpu = False
+        gpu4pyscf_available = False
+        gpu_mode = False
+
+        # Check if CUDA/cuPy is installed and functional
+        try:
+            import cupy as cp
+            cp.cuda.runtime.getDeviceCount() # Check for actual GPU devices
+            # Check if gpu4pyscf is installed
+            import gpu4pyscf
+            gpu4pyscf_available = True
+        except (ImportError, AssertionError):
+            pass
+
+        if use_gpu and gpu4pyscf_available and xc is not None: 
+            gpu_mode = True
+        else:
+            gpu_mode = False
+            if use_gpu and not gpu4pyscf_available:
+                print("Warning: gpu4pyscf not available. Running on CPU.")
+
+        try:
+            self.CreateMole(target, doQCMM)
+
+            if gpu_mode:
+                from gpu4pyscf import RKS, UKS
+                mf_class = RKS if "restricted" in str(self.method).lower() else UKS
+                mf = mf_class(state.mol, xc=xc)
+                state.mf = mf 
+            else:
+                pass
+            
             state.mf.run(xc=xc)
+
+               
             from pyscf.tools import molden
-            try: molden.dump_scf(state.mf,self.molden_name)
-            except: raise QCModelError ("Error in dumping molden file.")
+            if gpu_mode:
+                mf_cpu = state.mf.to_cpu()  # Transfer data back to CPU for molden
+                try: molden.dump_scf(mf_cpu, self.molden_name)
+                except: raise QCModelError ("Error in dumping molden file.")
+            else:
+                try: molden.dump_scf(state.mf, self.molden_name)
+                except: raise QCModelError ("Error in dumping molden file.")            
+        
+
+
+
+            if not state.mf.converged: raise QCModelError ( "SCF energy calculation did not converge." )
+        
+            energy_hartree = 0.0
+            if gpu_mode:
+                energy_hartree = float(state.mf.energy_tot())  # Get energy from GPU calculation
+            else: 
+                energy_hartree = state.mf.energy_tot()  # Get energy from CPU calculation
+
+            target.scratch.energyTerms["PySCF QC"] = ( state.mf.energy_tot() * Units.Energy_Hartrees_To_Kilojoules_Per_Mole )
+            ga_cpu = None
+            if doGradients:
+                try: 
+                    if gpu_mode:
+                        g = state.mf.nuc_grad_method()  # Ensure data is on CPU for gradient calculation
+                        ga = g.kernel()
+                        ga_cpu = ga.get() if hasattr(ga, 'get') else ga  # Handle case where g.kernel() returns CPU array
+                    else:
+                        g = state.mf.nuc_grad_method()
+                        ga_cpu = g.kernel()
+            
+                    # . QC gradients
+                    for i in range ( len ( state.atomicNumbers ) ):
+                        for j in range ( 3 ):
+                        target.scratch.qcGradients3AU[i,j] = ga_cpu[i,j]
+
+                except:
+                    raise QCModelError ( "Error calculating PySCF gradient." ) 
+        
         except:
-           raise QCModelError ( "Error calculating PySCF energy." )
-
-
-
-        if not state.mf.converged: raise QCModelError ( "SCF energy calculation did not converge." )
-        target.scratch.energyTerms["PySCF QC"] = ( state.mf.energy_tot() * Units.Energy_Hartrees_To_Kilojoules_Per_Mole )
-        if doGradients:
-            try: 
-                g  = state.mf.nuc_grad_method()
-                ga = g.kernel()
-            except:
-                raise QCModelError ( "Error calculating PySCF gradient." )  
-            # . QC gradients
-            for i in range ( len ( state.atomicNumbers ) ):
-                for j in range ( 3 ):
-                   target.scratch.qcGradients3AU[i,j] = ga[i,j]
-
+            raise QCModelError ( "Error calculating PySCF energy." )
+        
 #===================================================================================================================================
 # . Testing.
 #===================================================================================================================================
