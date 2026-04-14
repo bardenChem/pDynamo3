@@ -13,6 +13,40 @@ from pMolecule.QCModel import QCModel           , \
                               QCModelError
 from pScientific       import Units
 
+# Initialize GPU variables with safe defaults
+GPU_AVAILABLE = False
+HAS_CUDA = False
+GPU4PYSCF_AVAILABLE = False
+RKS_GPU = None
+UKS_GPU = None
+
+# Attempt GPU detection safely
+try:
+    import cupy as cp
+    try:
+        cp.cuda.runtime.getDeviceCount()
+        HAS_CUDA = True
+    except Exception:
+        pass  # CUDA runtime/driver issue
+    
+    if HAS_CUDA:
+        try:
+            import gpu4pyscf
+            from gpu4pyscf.dft import RKS, UKS
+            GPU4PYSCF_AVAILABLE = True
+            GPU_AVAILABLE = True
+            RKS_GPU = RKS
+            UKS_GPU = UKS
+            print("Info: GPU acceleration available")
+        except ImportError:
+            print("Info: gpu4pyscf not installed, GPU disabled")
+    else:
+        print("Info: CUDA not available, using CPU only")
+        
+except ImportError:
+    print("Info: CuPy not installed, using CPU only")
+
+
 #===================================================================================================================================
 # . Parameters.
 #===================================================================================================================================
@@ -121,37 +155,33 @@ class QCModelPySCF ( QCModel ):
         except:
             raise QCModelError ( "Error creating PySCF mole and mean-field objects." )
 
-        use_gpu = False
-        gpu4pyscf_available = False
         gpu_mode = False
-
-        # Check if CUDA/cuPy is installed and functional
-        try:
-            import cupy as cp
-            cp.cuda.runtime.getDeviceCount() # Check for actual GPU devices
-            # Check if gpu4pyscf is installed
-            import gpu4pyscf
-            gpu4pyscf_available = True
-        except (ImportError, AssertionError):
-            pass
-
-        if use_gpu and gpu4pyscf_available and xc is not None: 
+        if GPU_AVAILABLE and xc is not None:
             gpu_mode = True
-        else:
-            gpu_mode = False
-            if use_gpu and not gpu4pyscf_available:
-                print("Warning: gpu4pyscf not available. Running on CPU.")
+            print("Info: Running PySCF on GPU")
 
         try:
             self.CreateMole(target, doQCMM)
 
             if gpu_mode:
-                from gpu4pyscf import RKS, UKS
-                mf_class = RKS if "restricted" in str(self.method).lower() else UKS
-                mf = mf_class(state.mol, xc=xc)
-                state.mf = mf 
+                if "restricted" in str(self.method).lower():
+                    state.mf = RKS_GPU(state.mole, xc=xc)
+                else:
+                    state.mf = UKS_GPU(state.mole, xc=xc)
+            elif xc is not None:
+            # CPU DFT
+                from pyscf.dft import RKS, UKS
+                if "restricted" in str(self.method).lower():
+                    state.mf = RKS(state.mole, xc=xc)
+                else:
+                    state.mf = UKS(state.mole, xc=xc)
             else:
-                pass
+                # CPU Hartree-Fock (non-DFT)
+                from pyscf.scf import RHF, UHF
+                if "restricted" in str(self.method).lower():
+                    state.mf = RHF(state.mole)
+                else:
+                    state.mf = UHF(state.mole)
             
             state.mf.run(xc=xc)
 
@@ -191,7 +221,7 @@ class QCModelPySCF ( QCModel ):
                     # . QC gradients
                     for i in range ( len ( state.atomicNumbers ) ):
                         for j in range ( 3 ):
-                        target.scratch.qcGradients3AU[i,j] = ga_cpu[i,j]
+                            target.scratch.qcGradients3AU[i,j] = ga_cpu[i,j]
 
                 except:
                     raise QCModelError ( "Error calculating PySCF gradient." ) 
