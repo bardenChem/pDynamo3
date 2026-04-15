@@ -150,10 +150,7 @@ class QCModelPySCF ( QCModel ):
         if 'KS' in self.method.upper(): xc = self.functional
         doGradients     = target.scratch.doGradients
         doQCMM          = ( len ( target.atoms ) > len ( state.qcAtoms ) )
-        try: 
-            self.CreateMole ( target, doQCMM )
-        except:
-            raise QCModelError ( "Error creating PySCF mole and mean-field objects." )
+        
 
         gpu_mode = False
         if GPU_AVAILABLE and xc is not None:
@@ -166,23 +163,35 @@ class QCModelPySCF ( QCModel ):
             if gpu_mode:
                 if "restricted" in str(self.method).lower():
                     state.mf = RKS_GPU(state.mole, xc=xc)
+                    print("Info: Running PySCF DFT on GPU! Created with RKS with functional:", xc)
                 else:
                     state.mf = UKS_GPU(state.mole, xc=xc)
+                    print("Info: Running PySCF DFT on GPU! Created with UKS with functional:", xc)
             elif xc is not None:
             # CPU DFT
                 from pyscf.dft import RKS, UKS
                 if "restricted" in str(self.method).lower():
                     state.mf = RKS(state.mole, xc=xc)
+                    print("Info: Running PySCF DFT on CPU! Created with RKS with functional:", xc)
                 else:
                     state.mf = UKS(state.mole, xc=xc)
+                    print("Info: Running PySCF DFT on CPU! Created with UKS with functional:", xc)
             else:
                 # CPU Hartree-Fock (non-DFT)
                 from pyscf.scf import RHF, UHF
                 if "restricted" in str(self.method).lower():
                     state.mf = RHF(state.mole)
+                    print("Info: Running PySCF Hartree-Fock on CPU! Created with RHF")
                 else:
                     state.mf = UHF(state.mole)
-            
+                    print("Info: Running PySCF Hartree-Fock on CPU! Created with UHF")  
+
+            print(f"Current energy convergence tolerance: {state.mf.conv_tol}") 
+            print(f"Current gradient convergence tolerance: {state.mf.conv_tol_grad}")   
+            state.mf.conv_tol = 1e-6
+            state.mf.conv_tol_grad = 0.001
+            state.mf.max_cycle = 100
+            state.mf.verbose = 4 
             state.mf.run(xc=xc)
 
                
@@ -195,9 +204,6 @@ class QCModelPySCF ( QCModel ):
                 try: molden.dump_scf(state.mf, self.molden_name)
                 except: raise QCModelError ("Error in dumping molden file.")            
         
-
-
-
             if not state.mf.converged: raise QCModelError ( "SCF energy calculation did not converge." )
         
             energy_hartree = 0.0
@@ -206,7 +212,7 @@ class QCModelPySCF ( QCModel ):
             else: 
                 energy_hartree = state.mf.energy_tot()  # Get energy from CPU calculation
 
-            target.scratch.energyTerms["PySCF QC"] = ( state.mf.energy_tot() * Units.Energy_Hartrees_To_Kilojoules_Per_Mole )
+            target.scratch.energyTerms["PySCF QC"] = ( energy_hartree * Units.Energy_Hartrees_To_Kilojoules_Per_Mole )
             ga_cpu = None
             if doGradients:
                 try: 
