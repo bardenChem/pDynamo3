@@ -92,7 +92,10 @@ class ObjectiveFunctionIterator ( SummarizableObject ):
         state = self.StateFromObjectiveFunction ( objectiveFunction )
         self.LogStart     ( state, log = log )
         self.Initialize   ( state )
+        if state.f is None or state.rmsGradient is None:    
+            print("Warning: Initial function value or RMS gradient is None. This may indicate an issue with the objective function evaluation.") 
         self.LogIteration ( state )
+
         while ( self.Continue ( state ) ):
             self.Iteration    ( state )
             self.LogIteration ( state )

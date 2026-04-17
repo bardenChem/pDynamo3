@@ -124,7 +124,7 @@ class MultiDimensionalMinimizer ( ObjectiveFunctionIterator ):
         if ( state.table is not None ) and ( state.numberOfIterations % self.logFrequency == 0 ):
             state.table.Entry ( "{:d}".format ( state.numberOfIterations ) )
             state.table.Entry ( state.stepType )
-            state.table.Entry ( "{:20.8f}".format ( state.f                                   ) )
+            state.table.Entry ( "{:20.8f}".format ( state.f      if state.f is not None else 0.0 ) )
             state.table.Entry ( "{:20.8f}".format ( state.rmsGradient                         ) )
             state.table.Entry ( "{:20.8f}".format ( state.g.AbsoluteMaximum               ( ) ) )
             state.table.Entry ( "{:20.8f}".format ( state.alpha * state.d.RootMeanSquare  ( ) ) )
